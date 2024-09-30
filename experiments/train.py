@@ -6,15 +6,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from pathlib import Path
 from data.data_module import FSSEDataModule
 from models.dcunet import DCUnet10
+from models.model import DN
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.callbacks.progress.rich_progress import RichProgressBar, RichProgressBarTheme
 from lightning.pytorch.strategies import DDPStrategy
-from lightning.pytorch.callbacks import RichProgressBar
-from lightning.pytorch.callbacks.progress.rich_progress import RichProgressBarTheme
-
 import torch
-from torch.utils.data import DataLoader
 import torch.multiprocessing as mp
 
 # Constants
@@ -26,46 +24,39 @@ HOP_LENGTH = 256
 mp.set_start_method("spawn", force=True)
 torch.set_float32_matmul_precision("high")
 
-
-def main():
-    # Fixed parameters
-    TRAIN_BATCH_SIZE = 16
-    TEST_BATCH_SIZE = 8
-    loss_type = "nct"  # Only 'nct' loss type is used
-    model_type = "dcunet"  # Model fixed to 'dcunet'
-    max_epochs = 150
-    devices = [0]  # GPU devices to use
-
-    # Create the data module
+def train_clean_to_clean():
+    # データモジュールの作成
     datamodule = FSSEDataModule(
         SAMPLE_RATE=SAMPLE_RATE,
         N_FFT=N_FFT,
         HOP_LENGTH=HOP_LENGTH,
-        data_dir="/Users/rockwell/Documents/python/FSSE/data/source",
-        batch_size=TRAIN_BATCH_SIZE,
+        data_dir="/workspace/app/FSSE/data/source",
+        batch_size=32,
     )
-
     datamodule.setup()
-    train_loader = datamodule.train_dataloader()
-    test_loader = datamodule.test_dataloader()
 
-    # Update checkpoint and logger paths
-    checkpoint_dir = f"./checkpoints/{model_type}-white"
-    tb_log_dir = f"tb_logs/{model_type}-white"
+    # モデルのロード
+    model = DN(dim=32)
 
-    # Checkpoint and logging setup
+    # clean-to-clean用のデータローダーを取得
+    clean_train_loader = datamodule.train_clean_dataloader()
+    clean_test_loader = datamodule.val_clean_dataloader()
+
+    # チェックポイントとログの設定
     checkpoint_callback = ModelCheckpoint(
         monitor="val_loss",
-        dirpath=checkpoint_dir,
+        dirpath="/workspace/app/FSSE/checkpoints/clean_to_clean",
         filename="model-{epoch:02d}-{step:04d}-{val_loss:.2f}",
         save_top_k=1,
         verbose=True,
     )
+    logger = TensorBoardLogger("/workspace/app/FSSE/tb_logs/clean_to_clean", name="my_model")
+    
+    # Early stopping の設定
+    early_stopping_callback = EarlyStopping(monitor="val_loss", patience=20, verbose=True, mode="min")
+    strategy = strategy = DDPStrategy(find_unused_parameters=True)
 
-    logger = TensorBoardLogger(tb_log_dir, name="my_model")
-    strategy = DDPStrategy(find_unused_parameters=True)
-
-    # Progress bar setup
+    # プログレスバーの設定
     progress_bar = RichProgressBar(
         theme=RichProgressBarTheme(
             description="green_yellow",
@@ -80,33 +71,22 @@ def main():
         )
     )
 
-    # Early stopping
-    early_stopping_callback = EarlyStopping(monitor="val_loss", patience=10, verbose=True, mode="min")
-
-    # Initialize the model
-    model = DCUnet10(loss_type=loss_type)
-
-    # Create the trainer and start training
-    # trainer = Trainer(
-    #     accelerator="mps",
-    #     callbacks=[checkpoint_callback, progress_bar],
-    #     logger=logger,
-    #     max_epochs=max_epochs,
-    #     strategy=strategy,
-    #     devices=devices,
-    # )
-
+    # トレーナーの設定
     trainer = Trainer(
-        accelerator="mps",  # MPS（Apple SiliconのGPU）で実行
-        callbacks=[checkpoint_callback, progress_bar],
+        accelerator="cuda",
+        callbacks=[checkpoint_callback, progress_bar, early_stopping_callback],
         logger=logger,
-        max_epochs=max_epochs,
-        devices=1,  # MPSの場合、デバイス数は1
+        max_epochs=800,
+        strategy=strategy,
+        devices=[0,1,2,3],
     )
 
-    # Train the model
-    trainer.fit(model, train_loader, test_loader)
+    # clean-to-clean モデルの学習
+    trainer.fit(model, clean_train_loader, clean_test_loader)
+
+    # モデルの重みを保存
+    trainer.save_checkpoint("/workspace/app/FSSE/checkpoints/clean_to_clean_model.ckpt")
 
 
 if __name__ == "__main__":
-    main()
+    train_clean_to_clean()

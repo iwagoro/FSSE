@@ -77,10 +77,10 @@ def process_directory_multithread(input_dir, output_dir, noise_level=0.005, max_
 
 
 # 使用例
-input_directory = "/Users/rockwell/Documents/python/FSSE/data/source/train/clean"  # 入力wavファイルがあるディレクトリ
-output_directory = "/Users/rockwell/Documents/python/FSSE/data/source/train/noisy/white"  # ノイズを加えたwavファイルを保存するディレクトリ
-noise_level = 0.01  # ノイズの強さ
-max_workers = 4  # 使用するスレッド数
+input_directory = "/workspace/app/FSSE/data/source/test/clean"  # 入力wavファイルがあるディレクトリ
+output_directory = "/workspace/app/FSSE/data/source/test/noisy/white"  # ノイズを加えたwavファイルを保存するディレクトリ
+noise_level = 0.1  # ノイズの強さ
+max_workers = 10  # 使用するスレッド数
 
 # ディレクトリ内のすべてのwavファイルにホワイトノイズをマルチスレッドで加える
 process_directory_multithread(input_directory, output_directory, noise_level, max_workers)

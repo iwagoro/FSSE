@@ -48,8 +48,8 @@ def mse_loss(clean, pred, device):
 
 def wsdr_loss(x, y_pred, y_true, eps=1e-8):
     # to time-domain waveform
-    y_true_ = torch.squeeze(y_true_, 1)
-    x_ = torch.squeeze(x_, 1)
+    y_true_ = torch.squeeze(y_true, 1)
+    x_ = torch.squeeze(x, 1)
     y_true = istft(y_true_)
     x = istft(x_)
 
