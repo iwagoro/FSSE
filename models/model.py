@@ -290,13 +290,24 @@ class DN(LightningModule):
         print(f"stoi : {average_stoi}")
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=4e-4)
+        # optimizer = torch.optim.Adam(self.parameters(), lr=4e-4)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
         scheduler = {
-        # 'scheduler': optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5),
-        "scheduler":optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1),
-
-        'monitor': 'val_loss',  # 監視する指標
-        'interval': 'epoch',    # スケジューラが適用されるタイミング
-        'frequency': 1          # スケジューラの頻度
-    }
+            # 'scheduler': optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5),
+            # 'scheduler' : optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5),
+            'scheduler' : optim.lr_scheduler.OneCycleLR(
+                optimizer, 
+                max_lr=1e-3,        # 最大学習率
+                steps_per_epoch=60,  # エポックごとのステップ数
+                epochs=10,          # 学習の総エポック数
+                pct_start=0.3,      # どこで最大学習率に到達するか
+                anneal_strategy='cos',  # コサイン減衰
+                div_factor=25,      # 最小学習率の設定
+                final_div_factor=1e4  # 最終学習率の設定
+            ),    
+            'monitor': 'val_loss',  # 監視する指標
+            'interval': 'epoch',    # スケジューラが適用されるタイミング
+            'frequency': 1          # スケジューラの頻度
+        }
         return [optimizer], [scheduler]
+        # return optimizer

@@ -33,13 +33,13 @@ def train_few_shot_noisy_to_clean():
     datamodule.setup()
 
     # モデルのロード
-    model = DN(dim=32)
-    checkpoint = torch.load("")
+    model = DN(dim=32,few_shot=True)
+    checkpoint = torch.load("/workspace/app/FSSE/checkpoints/StepLR.ckpt")
     model.load_state_dict(checkpoint["state_dict"])
 
     # few-shot Noisy-to-Clean用のデータローダーを取得
     few_shot_train_loader = datamodule.train_few_shot_dataloader()
-    few_shot_val_loader = datamodule.val_few_shot_dataloade()
+    few_shot_val_loader = datamodule.val_few_shot_dataloader()
 
     # チェックポイントとログの設定
     checkpoint_callback = ModelCheckpoint(

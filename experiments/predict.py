@@ -57,8 +57,8 @@ def main():
     )
 
     # モデルの初期化
-    model = DN(dim=32)
-    checkpoint = torch.load("")  # 予測に使用するモデルのチェックポイント
+    model = DN(dim=32,few_shot=True)
+    checkpoint = torch.load("/workspace/app/FSSE/checkpoints/few_shot_noisy_to_clean/model-epoch=58-step=3540-val_loss=0.00.ckpt")  # 予測に使用するモデルのチェックポイント
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()  # モデルを評価モードに
 

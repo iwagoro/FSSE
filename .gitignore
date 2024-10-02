@@ -1,1 +1,4 @@
 data/source
+predictions
+tb_logs
+checkpoints
