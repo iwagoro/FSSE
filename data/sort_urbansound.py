@@ -4,9 +4,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
 # UrbanSound8Kの元のデータセットディレクトリ
-Urban8Kdir = "/Users/rockwell/Documents/python/FSSE/data/source/audio"
+Urban8Kdir = "/workspace/app/UrbanSound8K/audio"
 # 分類後のデータセットの保存先ディレクトリ
-output_dir = "/Users/rockwell/Documents/python/FSSE/data/source/urban"
+output_dir = "/workspace/app/FSSE/data/source/urban"
 
 # ノイズタイプに対応するディレクトリを作成
 noise_class_dictionary = {

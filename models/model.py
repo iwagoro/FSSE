@@ -10,6 +10,7 @@ import torchaudio
 import torch.optim as optim
 from pathlib import Path
 from utils.stft import istft
+from utils.loss import wsdr_loss
 
 from utils.metrics import getPesqList, getSNRList, getSTOIList
 
@@ -239,14 +240,16 @@ class DN(LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        loss = nn.MSELoss()(y_hat, y)
+        # loss = nn.MSELoss()(y_hat, y)
+        loss = wsdr_loss(x,y_hat,y)
         self.log("train_loss", loss, prog_bar=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        loss = nn.MSELoss()(y_hat, y)
+        # loss = nn.MSELoss()(y_hat, y)
+        loss = wsdr_loss(x,y_hat,y)
         self.log("val_loss", loss, prog_bar=True, sync_dist=True)
         return loss
 
@@ -254,10 +257,14 @@ class DN(LightningModule):
         x, y = batch
         pred = self(x)
 
-        pesqNb = getPesqList(pred, y, "nb")
-        pesqWb = getPesqList(pred, y, "wb")
-        snr = getSNRList(pred, y)
-        stoi = getSTOIList(pred, y)
+        # pesqNb = getPesqList(pred, y, "nb")
+        # pesqWb = getPesqList(pred, y, "wb")
+        # snr = getSNRList(pred, y)
+        # stoi = getSTOIList(pred, y)
+        pesqNb = getPesqList(x, y, "nb")
+        pesqWb = getPesqList(x, y, "wb")
+        snr = getSNRList(x, y)
+        stoi = getSTOIList(x, y)
 
         self.pesqNb_scores.append(pesqNb)
         self.pesqWb_scores.append(pesqWb)
@@ -291,15 +298,15 @@ class DN(LightningModule):
 
     def configure_optimizers(self):
         # optimizer = torch.optim.Adam(self.parameters(), lr=4e-4)
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
+        optimizer = torch.optim.Adam(self.parameters(), lr=4e-4)
         scheduler = {
             # 'scheduler': optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5),
             # 'scheduler' : optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5),
             'scheduler' : optim.lr_scheduler.OneCycleLR(
                 optimizer, 
-                max_lr=1e-3,        # 最大学習率
+                max_lr=4e-3,        # 最大学習率
                 steps_per_epoch=60,  # エポックごとのステップ数
-                epochs=10,          # 学習の総エポック数
+                epochs=50,          # 学習の総エポック数
                 pct_start=0.3,      # どこで最大学習率に到達するか
                 anneal_strategy='cos',  # コサイン減衰
                 div_factor=25,      # 最小学習率の設定

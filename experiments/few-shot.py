@@ -33,9 +33,7 @@ def train_few_shot_noisy_to_clean():
     datamodule.setup()
 
     # モデルのロード
-    model = DN(dim=32,few_shot=True)
-    checkpoint = torch.load("/workspace/app/FSSE/checkpoints/StepLR.ckpt")
-    model.load_state_dict(checkpoint["state_dict"])
+    model = DN(dim=64)
 
     # few-shot Noisy-to-Clean用のデータローダーを取得
     few_shot_train_loader = datamodule.train_few_shot_dataloader()
@@ -44,12 +42,12 @@ def train_few_shot_noisy_to_clean():
     # チェックポイントとログの設定
     checkpoint_callback = ModelCheckpoint(
         monitor="val_loss",
-        dirpath="/workspace/app/FSSE/checkpoints/few_shot_noisy_to_clean",
+        dirpath="/workspace/app/FSSE/checkpoints/few_shot_noisy_to_clean_without_pretrain",
         filename="model-{epoch:02d}-{step:04d}-{val_loss:.2f}",
         save_top_k=1,
         verbose=True,
     )
-    logger = TensorBoardLogger("/workspace/app/FSSE/tb_logs/few_shot_noisy_to_clean", name="my_model")
+    logger = TensorBoardLogger("/workspace/app/FSSE/tb_logs/few_shot_noisy_to_clean_without_pretrain", name="my_model")
 
     # Early stopping の設定
     early_stopping_callback = EarlyStopping(monitor="val_loss", patience=10, verbose=True, mode="min")

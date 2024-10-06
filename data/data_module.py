@@ -147,7 +147,7 @@ class FSSEDataModule(pl.LightningDataModule):
 
     # noisy-to-clean for validation
     def val_few_shot_dataloader(self):
-        return DataLoader(self.few_shot_test_dataset, batch_size=self.batch_size, num_workers=27,persistent_workers=True)
+        return DataLoader(self.full_noisy_clean_test_dataset, batch_size=self.batch_size, num_workers=27,persistent_workers=True)
 
     # noisy-to-clean for prediction
     def test_dataloader(self):

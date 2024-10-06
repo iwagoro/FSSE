@@ -7,9 +7,9 @@ from tqdm import tqdm
 import soundfile as sf
 
 # 設定
-target_folder_train = "/Users/rockwell/Documents/python/FSSE/data/source/train/clean"
-target_folder_test = "/Users/rockwell/Documents/python/FSSE/data/source/test/clean"
-UrbanNoiseDir = "/Users/rockwell/Documents/python/FSSE/data/source/urban/"
+target_folder_train = "/workspace/app/FSSE/data/source/train/clean"
+target_folder_test = "/workspace/app/FSSE/data/source/test/clean"
+UrbanNoiseDir = "/workspace/app/FSSE/data/source/urban"
 noise_class_dictionary = {
     0: "air_conditioner",
     1: "car_horn",
@@ -88,7 +88,7 @@ def makeCorruptedFile_singletype(filename, base_folder, dest, noise_type, snr):
 
 
 # ディレクトリ内の全てのファイルにノイズを追加する関数
-def process_directory(input_dir, output_dir, noise_type, num_workers=10):
+def process_directory(input_dir, output_dir, noise_type, num_workers=20):
     files = [f for f in os.listdir(input_dir) if f.endswith(".wav")]
 
     # マルチスレッドで処理を実行
@@ -116,11 +116,11 @@ if __name__ == "__main__":
     noise_type = int(input("ノイズタイプを選んでください (0-9): "))
 
     # トレーニングデータ用のディレクトリを作成
-    inp_folder_train = f"/Users/rockwell/Documents/python/FSSE/data/source/train/noisy/urban-{noise_type}"
+    inp_folder_train = f"/workspace/app/FSSE/data/source/train/noisy/urban-{noise_type}"
     os.makedirs(inp_folder_train, exist_ok=True)
 
     # テストデータ用のディレクトリを作成
-    inp_folder_test = f"/Users/rockwell/Documents/python/FSSE/data/source/test/noisy/urban-{noise_type}"
+    inp_folder_test = f"/workspace/app/FSSE/data/source/test/noisy/urban-{noise_type}"
     os.makedirs(inp_folder_test, exist_ok=True)
 
     # トレーニングデータの処理

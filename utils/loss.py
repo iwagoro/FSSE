@@ -47,11 +47,13 @@ def mse_loss(clean, pred, device):
 
 
 def wsdr_loss(x, y_pred, y_true, eps=1e-8):
-    # to time-domain waveform
-    y_true_ = torch.squeeze(y_true, 1)
-    x_ = torch.squeeze(x, 1)
-    y_true = istft(y_true_)
-    x = istft(x_)
+    # # to time-domain waveform
+    y_true = torch.squeeze(y_true, 1)
+    y_pred = torch.squeeze(y_pred,1)
+    x = torch.squeeze(x, 1)
+    y_true = istft(y_true)
+    y_pred = istft(y_pred)
+    x = istft(x)
 
     y_pred = y_pred.flatten(1)
     y_true = y_true.flatten(1)

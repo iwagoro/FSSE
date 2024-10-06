@@ -5,7 +5,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from pathlib import Path
 from data.data_module import FSSEDataModule
-from models.dcunet import DCUnet10
 from models.model import DN
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
@@ -83,9 +82,6 @@ def train_clean_to_clean():
 
     # clean-to-clean モデルの学習
     trainer.fit(model, clean_train_loader, clean_test_loader)
-
-    # モデルの重みを保存
-    trainer.save_checkpoint("/workspace/app/FSSE/checkpoints/clean_to_clean_model.ckpt")
 
 
 if __name__ == "__main__":
