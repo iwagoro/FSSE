@@ -216,9 +216,9 @@ class DN(LightningModule):
         self.few_shot = few_shot
         self.Encoder = Encoder(in_channels, dim)
 
-        if self.few_shot:
-            for p in self.parameters():
-                p.requires_grad = False
+        # if self.few_shot:
+        #     for p in self.parameters():
+        #         p.requires_grad = False
 
         self.Decoder = Decoder(dim, out_channels)
         self.Noiser = Noiser(dim, in_channels, out_channels)

@@ -5,8 +5,16 @@ from torch.utils.data import DataLoader, Dataset
 from glob import glob
 import os
 import torch
+import torchaudio.transforms as T
+import torchvision.transforms as VT
+import random
+import warnings
+warnings.filterwarnings("ignore")
+
+
 
 N_FFT = 1022
+SAMPLE_RATE=48000
 HOP_LENGTH = 256
 MAX_LEN = 65280
 
@@ -46,6 +54,8 @@ def tensor_istft(stft):
     return result
 
 
+
+
 # Clean-to-Clean用のデータセット
 class CleanAudioDataset(Dataset):
     def __init__(self, clean_files):
@@ -72,6 +82,7 @@ class CleanAudioDataset(Dataset):
         x_clean = self._prepare_sample(x_clean)
         x_clean_stft = self._stft(x_clean)
         return x_clean_stft, x_clean_stft  # Clean-to-Cleanのペア
+
 
 
 # Few-shot用のNoisy-to-Cleanデータセット
@@ -122,9 +133,13 @@ class FSSEDataModule(pl.LightningDataModule):
         self.train_noisy = sorted(glob(os.path.join(self.data_dir, "train", "noisy", "white", "*.wav")))
         self.test_noisy = sorted(glob(os.path.join(self.data_dir, "test", "noisy", "white", "*.wav")))
 
+        # # clean-to-clean
+        # self.clean_train_dataset = CleanAudioDataset(self.train_clean)
+        # self.clean_test_dataset = CleanAudioDataset(self.test_clean)
         # clean-to-clean
-        self.clean_train_dataset = CleanAudioDataset(self.train_clean)
-        self.clean_test_dataset = CleanAudioDataset(self.test_clean)
+        self.clean_train_dataset = CleanAudioDataset(self.train_clean)  # トレーニングデータでオーギュメンテーションを有効化
+        self.clean_test_dataset = CleanAudioDataset(self.test_clean)  # テストデータはオーギュメンテーションを行わない
+
 
         # noisy-to-clean
         self.few_shot_train_dataset = FewShotNoisyAudioDataset(self.train_noisy, self.train_clean, self.few_shot_k)
@@ -152,4 +167,6 @@ class FSSEDataModule(pl.LightningDataModule):
     # noisy-to-clean for prediction
     def test_dataloader(self):
         return DataLoader(self.full_noisy_clean_test_dataset, batch_size=self.batch_size, num_workers=7,persistent_workers=True)
+    
+    
 

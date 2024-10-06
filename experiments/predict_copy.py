@@ -58,8 +58,8 @@ def main():
 
     # モデルの初期化
     model = DN(dim=128,few_shot=True)
-    checkpoint = torch.load("/workspace/app/FSSE/checkpoints/few_shot_noisy_to_clean/model-epoch=15-step=0960-val_loss=-0.98.ckpt")  # 予測に使用するモデルのチェックポイント
-    # checkpoint = torch.load("/workspace/app/FSSE/checkpoints/few_shot_noisy_to_clean/model-epoch=16-step=1020-val_loss=-0.91.ckpt")
+    # checkpoint = torch.load("/workspace/app/FSSE/checkpoints/few_shot_noisy_to_clean/model-epoch=15-step=0960-val_loss=-0.98.ckpt")  # 予測に使用するモデルのチェックポイント
+    checkpoint = torch.load("/workspace/app/FSSE/checkpoints/few_shot_noisy_to_clean/model-epoch=09-step=0600-val_loss=-0.98.ckpt")
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()  # モデルを評価モードに
 

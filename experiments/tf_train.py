@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from data.data_module import FSSEDataModule
-from models.improved_model import DN
+from models.tf_model import DN
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
@@ -29,7 +29,7 @@ def train_clean_to_clean():
         N_FFT=N_FFT,
         HOP_LENGTH=HOP_LENGTH,
         data_dir="/workspace/app/FSSE/data/source",
-        batch_size=2,
+        batch_size=8,
     )
     datamodule.setup()
 

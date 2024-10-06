@@ -13,6 +13,8 @@ from utils.stft import istft, tensor_stft, tensor_istft
 from utils.loss import basic_loss, reg_loss, wsdr_loss
 from utils.subsample import subsample2
 
+import torch.optim as optim
+
 
 class DCUnet10(LightningModule):
     def __init__(self, dataset="", loss_type=""):
@@ -32,7 +34,7 @@ class DCUnet10(LightningModule):
 
         self.save_hyperparameters()
         # downsampling/encoding
-        self.downsample0 = Encoder(filter_size=(3, 3), stride_size=(2, 2), in_channels=1, out_channels=45)
+        self.downsample0 = Encoder(filter_size=(3, 3), stride_size=(2, 2), in_channels=2, out_channels=45)
         self.downsample1 = Encoder(filter_size=(3, 3), stride_size=(2, 2), in_channels=45, out_channels=90)
         self.downsample2 = Encoder(filter_size=(3, 3), stride_size=(2, 2), in_channels=90, out_channels=90)
         self.downsample3 = Encoder(filter_size=(3, 3), stride_size=(2, 2), in_channels=90, out_channels=90)
@@ -48,7 +50,7 @@ class DCUnet10(LightningModule):
             stride_size=(2, 2),
             in_channels=90,
             output_padding=(1, 1),
-            out_channels=1,
+            out_channels=2,
             last_layer=True,
         )
 
@@ -151,5 +153,28 @@ class DCUnet10(LightningModule):
     #     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
     #     return [optimizer], [scheduler]
 
+    # def configure_optimizers(self):
+    #     return torch.optim.Adam(self.parameters(), lr=8e-4)
+    
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=8e-4)
+        # optimizer = torch.optim.Adam(self.parameters(), lr=4e-4)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
+        scheduler = {
+            # 'scheduler': optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5),
+            # 'scheduler' : optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5),
+            'scheduler' : optim.lr_scheduler.OneCycleLR(
+                optimizer, 
+                max_lr=1e-3,        # 最大学習率
+                steps_per_epoch=60,  # エポックごとのステップ数
+                epochs=10,          # 学習の総エポック数
+                pct_start=0.3,      # どこで最大学習率に到達するか
+                anneal_strategy='cos',  # コサイン減衰
+                div_factor=25,      # 最小学習率の設定
+                final_div_factor=1e4  # 最終学習率の設定
+            ),    
+            'monitor': 'val_loss',  # 監視する指標
+            'interval': 'epoch',    # スケジューラが適用されるタイミング
+            'frequency': 1          # スケジューラの頻度
+        }
+        return [optimizer], [scheduler]
+        # return optimizer
